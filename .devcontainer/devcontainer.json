@@ -6,13 +6,10 @@
 			"version": "none",
 			"toolsToInstall": "uv,pre-commit"
 		},
-		"ghcr.io/devcontainers/features/node": {},
-		"ghcr.io/devcontainers/features/java": {
-			"installMaven": true
-		}
+		"ghcr.io/devcontainers/features/node": {}
 	},
 	"containerEnv": {
-		"CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+		"CODEX_HOME": "/home/vscode/.codex",
 		"DISABLE_AUTOUPDATER": "1",
 		"PROMPT_COMMAND": "history -a",
 		"HISTFILE": "/commandhistory/.bash_history",
@@ -22,8 +19,7 @@
 		"SSH_AUTH_SOCK": "/ssh-agent",
 		"http_proxy": "http://proxy:3128",
 		"https_proxy": "http://proxy:3128",
-		"no_proxy": "localhost,127.0.0.1,proxy,notification",
-		"MAVEN_ARGS": "-s /workspaces/${localWorkspaceFolderBasename}/.devcontainer/maven/settings.xml"
+		"no_proxy": "localhost,127.0.0.1,proxy,notification"
 	},
 	"remoteEnv": {
 		"npm_config_preifx": "/home/vscode/.local"
@@ -33,9 +29,7 @@
 			"extensions": [
 				"ms-python.python",
 				"charliermarsh.ruff",
-				"redhat.vscode-yaml",
-				"anthropic.claude-code",
-				"vmware.vscode-boot-dev-pack"
+				"redhat.vscode-yaml"
 			],
 			"settings": {
 				"[python]": {
@@ -47,15 +41,14 @@
 		}
 	},
 	"remoteUser": "vscode",
-	"postCreateCommand": ".devcontainer/install-claude-code.sh",
+	"postCreateCommand": ".devcontainer/install-codex.sh",
 	"postStartCommand": "sudo .devcontainer/update-workspace-owner.sh",
 	"waitFor": "postStartCommand",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"mounts": [
 		"source=..,target=/workspaces/${localWorkspaceFolderBasename},type=bind",
-		"source=claude-code-bashhistory,target=/commandhistory,type=volume",
-		"source=claude-code-config,target=/home/vscode/.claude,type=volume",
-		"source=${env:SSH_AUTH_SOCK},target=/ssh-agent,type=bind",
-		"source=maven-local-repository,target=/home/vscode/.m2/repository,type=volume"
+		"source=codex-bashhistory,target=/commandhistory,type=volume",
+		"source=codex-config,target=/home/vscode/.codex,type=volume",
+		"source=${env:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
 	]
 }

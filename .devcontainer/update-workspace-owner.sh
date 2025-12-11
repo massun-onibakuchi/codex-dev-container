@@ -1,4 +1,7 @@
 #!/bin/bash
+# .devcontainer/update-workspace-owner.sh
+# Normalize ownership of bind mounts and volumes so the vscode user can write to them.
+# This runs as root from devcontainer postStart to avoid permission surprises on Windows mounts.
 set -euo pipefail
 
 # Windowsでマウントしたディレクトリの所有者がrootになってしまう課題へ対応するスクリプト
@@ -23,6 +26,6 @@ update_owner_if_needed() {
     chown -R ${current_user}:${current_user} ${target_dir}
 }
 
-for target_dir in "/commandhistory" "$(eval echo ~${SUDO_USER})/.claude" "$(eval echo ~${SUDO_USER})/.m2" "/workspaces"; do
+for target_dir in "/commandhistory" "$(eval echo ~${SUDO_USER})/.codex" "/workspaces"; do
     update_owner_if_needed "${target_dir}"
 done

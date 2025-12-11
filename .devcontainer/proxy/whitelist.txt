@@ -14,13 +14,9 @@ vscode.download.prss.microsoft.com
 download.visualstudio.microsoft.com
 vscode-sync.trafficmanager.net
 vscode.dev
-repo.maven.apache.org
-.spring.io
 pypi.org
 files.pythonhosted.org
 registry.npmjs.org
-api.anthropic.com
-sentry.io
-statsig.anthropic.com
-statsig.com
-console.anthropic.com
+api.openai.com
+platform.openai.com
+auth.openai.com

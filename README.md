@@ -1,4 +1,4 @@
-# Claude Code in Dev Container example
+# Codex in Dev Container example
 
 > [!NOTE]
 > 「[Claude Codeをなるべく安全に動かすためのDev Containerを構築した](https://zenn.dev/backpaper0/articles/038838c4cec2a8)」からこのリポジトリを訪れた方へ。
@@ -7,13 +7,13 @@
 
 ## 概要
 
-このプロジェクトは、Claude CodeをDev Container環境で安全に動作させるための構成例を提供します。
+このプロジェクトは、OpenAI Codex CLIをDev Container環境で安全に動作させるための構成例を提供します。もともとClaude Code向けに組んでいた構成をCodex用に置き換えています。
 
 ネットワークフィルタリングにはSquid Proxyを使用したホワイトリスト方式を採用し、許可されたドメインのみへのアクセスを実現しています。
 
 ## 構成要素
 
-- **Dev Container**: VS Code Dev Container環境でClaude Codeを実行
+- **Dev Container**: VS Code Dev Container環境でCodex CLIを実行
 - **Proxy**: Squid Proxyによるホワイトリストベースのネットワークフィルタリング
 - **Notification**: Owattayoによる作業完了通知サービス
 - **Docker Compose**: 3つのサービス（devcontainer、proxy、notification）を統合
@@ -29,7 +29,7 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
 │  private_net (内部ネットワーク)                    │
 │  ┌──────────────┐      ┌─────────────────────┐ │
 │  │ devcontainer │◄────►│  notification       │ │
-│  │ (Claude Code)│      │  (Owattayo)         │ │
+│  │ (Codex CLI)  │      │  (Owattayo)         │ │
 │  └──────┬───────┘      └─────────┬───────────┘ │
 │         │                        │             │
 │    ┌────▼────┐                   │             │
@@ -58,7 +58,7 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
 .devcontainer/
 ├── devcontainer.json          # Dev Container設定ファイル
 ├── compose.yaml               # Docker Compose設定（3サービス構成）
-├── install-claude-code.sh     # Claude Codeインストールスクリプト
+├── install-codex.sh           # Codex CLIインストールスクリプト
 ├── update-workspace-owner.sh  # ワークスペース所有者設定スクリプト
 └── proxy/
     ├── squid.conf             # Squid Proxy設定
@@ -67,13 +67,13 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
 
 ## 機能
 
-### 1. Claude Code統合
+### 1. Codex CLI統合
 
-- npm経由でClaude Codeをインストール（`@anthropic-ai/claude-code`）
+- npm経由でCodex CLIをインストール（`@openai/codex`）
 - Microsoft公式のPython 3.13ベースイメージ（`mcr.microsoft.com/devcontainers/python:3.13`）を使用
 - DevContainersのPython/Nodeフィーチャーを使用
   - Python: uv、pre-commitツールを含む
-  - Node.js: npm経由でClaude Codeをインストール
+  - Node.js: npm経由でCodexをインストール
 
 ### 2. プロキシベースのネットワークフィルタリング
 
@@ -82,8 +82,8 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
 - 許可されたサービスとドメイン:
   - **GitHub**: `.github.com`
   - **VS Code**: 更新、マーケットプレイス、同期サービス各種ドメイン
-  - **開発ツール**: npm registry, PyPI, Maven Central
-  - **AI・分析**: Anthropic API, Sentry, Statsig
+  - **開発ツール**: npm registry, PyPI
+  - **AI**: OpenAI API
 - ネットワーク分離:
   - devcontainerはprivate_netのみに接続（インターネット直接アクセス不可）
   - すべてのHTTP/HTTPS通信はproxy経由で実行
@@ -100,7 +100,7 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
 ### 4. 通知システム（Owattayo）
 
 - HTTPリクエストを受信してDiscordに転送する通知サービス
-- Claude Codeのタスク完了時などの作業通知に使用
+- Codexのタスク完了時などの作業通知に使用
 - `ghcr.io/backpaper0/owattayo`コンテナイメージを使用
 - Discord Webhook URLによる通知設定（環境変数`DISCORD_WEBHOOK_URL`）
 - private_netとpublic_netの両方に接続し、devcontainerからの通知を受信してDiscordに転送
@@ -127,7 +127,7 @@ graph TD
             B[notification service<br/>Owattayo]
         end
         subgraph "private_net"
-            A[devcontainer<br/>Claude Code]
+            A[devcontainer<br/>Codex CLI]
         end
     end
     C[Discord チャンネル]
@@ -184,14 +184,14 @@ graph TD
    - Microsoft公式のPython 3.13ベースイメージが使用されます
    - Docker Composeで3つのサービス（devcontainer、proxy、notification）が起動します
    - Python環境、Node.js環境がセットアップされます
-   - Claude Codeがnpm経由でインストールされます（`postCreateCommand`により実行）
+   - Codex CLIがnpm経由でインストールされます（`postCreateCommand`により実行）
    - Squid Proxyが自動で起動し、ホワイトリストベースのネットワークフィルタリングが有効になります
 
 5. **動作確認**
 
    ```bash
-   # Claude Codeの動作確認
-   claude --version
+   # Codex CLIの動作確認
+   codex --version
 
    # プロキシ経由のアクセス確認（許可されたサイト）
    curl --connect-timeout 5 https://api.github.com/zen  # 成功するはず
@@ -205,6 +205,14 @@ graph TD
 必要に応じて以下の環境変数を設定してください：
 
 - `DISCORD_WEBHOOK_URL`: Discord通知用（ホスト側で設定するとnotificationサービスのコンテナへも自動で引き継がれます）
+
+### テスト
+
+プロキシのホワイトリストがCodex用に設定されているかを確認するには、リポジトリルートで次を実行します:
+
+```bash
+./examples/test_codex_whitelist.sh
+```
 
 ## カスタマイズ
 
@@ -224,53 +232,30 @@ echo "example.org" >> .devcontainer/proxy/whitelist.txt
 
 より高度な設定が必要な場合は、`.devcontainer/proxy/squid.conf`を編集します。Squid Proxyの標準的な設定オプションを使用できます。
 
-## Claude Code設定
+## Codex設定
 
-### フック設定
+Codexは`$CODEX_HOME`（デフォルト: `~/.codex`）配下の設定ファイルで挙動を制御します。このDev Containerでは`CODEX_HOME=/home/vscode/.codex`を設定し、ボリュームをマウントして永続化しています。
 
-Claude Codeは`.claude/settings.json`で作業完了時の通知フックを設定できます。
-
-**設定例:**
-```json
-{
-  "hooks": {
-    "stop": "jq -r '.transcript_path' | xargs -I{} cat {} | jq -c 'select(.type == \"user\" and (has(\"toolUseResult\") | not)) | {prompt:.message.content}' | tail -n 1 | jq -c --arg title \"$NOTIFICATION_TITLE\" '. + {title:$title}' | curl --connect-timeout 5 -X POST $NOTIFICATION_ENDPOINT -H 'Content-Type: application/json' -d @-"
-  }
-}
-```
-
-このフックは以下の動作を行います：
-- Stopイベントから`transcript_path`を抽出
-- トランスクリプトファイルを読み込み、ユーザープロンプトを解決
-- ユーザープロンプトとタイトルをnotificationサービスへ送信
-- notificationサービスがDiscordへ通知を転送
-
-### VS Code拡張機能の追加
-
-`devcontainer.json`の`customizations.vscode.extensions`配列に追加:
+### config.json例
 
 ```json
 {
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "charliermarsh.ruff",
-        "redhat.vscode-yaml",
-        "your.extension-id"
-      ]
-    }
-  }
+  "model": "o4-mini",
+  "approvalMode": "suggest",
+  "fullAutoErrorMode": "ask-user",
+  "notify": true
 }
 ```
+
+Codexの設定フォーマットは公式ドキュメントに従い、TOML/JSON/YAMLいずれでも配置できます。認証はCodex CLIのログインフローを利用する想定で、環境変数でAPIキーを渡す必要はありません。
 
 ## セキュリティに関する注意事項
 
-このプロジェクトは、Claude Codeを比較的安全に実行するための環境を提供しますが、完全なセキュリティを保証するものではありません。
+このプロジェクトは、Codex CLIを比較的安全に実行するための環境を提供しますが、完全なセキュリティを保証するものではありません。
 
 - ホワイトリストに含まれるドメインへのアクセスは許可されます
 - プロキシ設定を慎重に管理し、不要なドメインをホワイトリストに追加しないでください
-- Claude Codeが実行するコマンドには十分注意してください
+- Codexが実行するコマンドには十分注意してください
 - 機密情報を含むプロジェクトでの使用には特に注意が必要です
 
 ## トラブルシューティング
