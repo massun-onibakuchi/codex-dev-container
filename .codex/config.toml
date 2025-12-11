@@ -1,0 +1,12 @@
+hide_agent_reasoning = false
+
+[features]
+web_search_request = true # allow the model to request web searches
+
+[mcp_servers.context7]
+args = ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"]
+command = "npx"
+env = { "CONTEXT7_API_KEY" = "${CONTEXT7_API_KEY}" }
+
+[shell_environment_policy]
+include_only = ["CONTEXT7_API_KEY"]
