@@ -1,32 +1,32 @@
 # Codex in Dev Container example
 
 > [!NOTE]
-> 「[Claude Codeをなるべく安全に動かすためのDev Containerを構築した](https://zenn.dev/backpaper0/articles/038838c4cec2a8)」からこのリポジトリを訪れた方へ。
-> 記事を書いてからも開発を進めているため、本リポジトリの内容は記事の内容と乖離していると思います。
-> 記事執筆時点の本リポジトリがどのような状態だったか見たい場合は[`zenn/2025-08-19`タグ](https://github.com/backpaper0/claude-code-in-devcontainer-example/tree/zenn/2025-08-19)をご覧ください。
+> For readers coming from “[Built a Dev Container to run Claude Code as safely as possible](https://zenn.dev/backpaper0/articles/038838c4cec2a8)”.
+> Development has continued since the article, so the repository no longer matches it.
+> To see the state at the time of writing, check the [`zenn/2025-08-19` tag](https://github.com/backpaper0/claude-code-in-devcontainer-example/tree/zenn/2025-08-19).
 
-## 概要
+## Overview
 
-このプロジェクトは、OpenAI Codex CLIをDev Container環境で安全に動作させるための構成例を提供します。もともとClaude Code向けに組んでいた構成をCodex用に置き換えています。
+This project provides a reference setup for running the OpenAI Codex CLI safely inside a Dev Container. It adapts a configuration originally built for Claude Code to Codex.
 
-ネットワークフィルタリングにはSquid Proxyを使用したホワイトリスト方式を採用し、許可されたドメインのみへのアクセスを実現しています。
+Network filtering is enforced by a whitelist-driven Squid proxy so only approved domains are reachable.
 
-## 構成要素
+## Components
 
-- **Dev Container**: VS Code Dev Container環境でCodex CLIを実行
-- **Proxy**: Squid Proxyによるホワイトリストベースのネットワークフィルタリング
-- **Notification**: Owattayoによる作業完了通知サービス
-- **Docker Compose**: 3つのサービス（devcontainer、proxy、notification）を統合
+- **Dev Container**: Runs Codex CLI inside VS Code Dev Containers
+- **Proxy**: Squid proxy with whitelist-based filtering
+- **Notification**: Owattayo-based job completion notification service
+- **Docker Compose**: Integrates three services (devcontainer, proxy, notification)
 
-## アーキテクチャ
+## Architecture
 
-Docker Composeで3つのサービスを実行し、ネットワークを分離することでセキュリティを確保しています。
+Docker Compose runs three services with network separation for security.
 
 ```
 ┌─────────────────────────────────────────────────┐
 │ Dev Container Environment                        │
 │                                                  │
-│  private_net (内部ネットワーク)                    │
+│  private_net (internal)                           │
 │  ┌──────────────┐      ┌─────────────────────┐ │
 │  │ devcontainer │◄────►│  notification       │ │
 │  │ (Codex CLI)  │      │  (Owattayo)         │ │
@@ -38,7 +38,7 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
 │    └────┬────┘                   │             │
 │         │                        │             │
 │  ───────┼────────────────────────┼─────────────│
-│  public_net (外部接続ネットワーク)  │             │
+│  public_net (external)            │             │
 │         │                        │             │
 └─────────┼────────────────────────┼─────────────┘
           │                        │
@@ -46,79 +46,79 @@ Docker Composeで3つのサービスを実行し、ネットワークを分離�
     Internet (whitelist)     Internet (Discord)
 ```
 
-- **private_net**: 内部専用ネットワーク（インターネットアクセス不可）
-- **public_net**: 外部接続可能ネットワーク
-- **devcontainer**: private_netのみに接続し、proxy経由でインターネットアクセス（ホワイトリストのみ）
-- **proxy**: 両方のネットワークに接続し、ホワイトリストベースのフィルタリングを提供
-- **notification**: 両方のネットワークに接続し、devcontainerからの通知を受信してDiscordへ直接送信
+- **private_net**: Internal-only network (no direct internet access)
+- **public_net**: Internet-facing network
+- **devcontainer**: Attached only to private_net; reaches the internet via proxy (whitelisted)
+- **proxy**: Connected to both networks; enforces whitelist-based filtering
+- **notification**: Connected to both networks; receives notifications from devcontainer and forwards to Discord
 
-## ディレクトリ構造
+## Directory layout
 
 ```
 .devcontainer/
-├── devcontainer.json          # Dev Container設定ファイル
-├── compose.yaml               # Docker Compose設定（3サービス構成）
-├── install-codex.sh           # Codex CLIインストールスクリプト
-├── update-workspace-owner.sh  # ワークスペース所有者設定スクリプト
+├── devcontainer.json          # Dev Container settings
+├── compose.yaml               # Docker Compose (three services)
+├── install-codex.sh           # Codex CLI install script
+├── update-workspace-owner.sh  # Workspace ownership helper
 └── proxy/
-    ├── squid.conf             # Squid Proxy設定
-    └── whitelist.txt          # 許可ドメインリスト
+    ├── squid.conf             # Squid proxy config
+    └── whitelist.txt          # Allowed domains list
 ```
 
-## 機能
+## Features
 
-### 1. Codex CLI統合
+### 1. Codex CLI integration
 
-- npm経由でCodex CLIをインストール（`@openai/codex`）
-- Microsoft公式のPython 3.13ベースイメージ（`mcr.microsoft.com/devcontainers/python:3.13`）を使用
-- DevContainersのPython/Nodeフィーチャーを使用
-  - Python: uv、pre-commitツールを含む
-  - Node.js: npm経由でCodexをインストール
+- Install Codex CLI via npm (`@openai/codex`)
+- Use the official Microsoft Python 3.13 base image (`mcr.microsoft.com/devcontainers/python:3.13`)
+- Use DevContainers Python/Node features
+  - Python: includes uv and pre-commit tooling
+  - Node.js: installs Codex via npm
 
-### 2. プロキシベースのネットワークフィルタリング
+### 2. Proxy-based network filtering
 
-- Squid Proxyを使用したホワイトリストベースのアクセス制御
-- ドメインベースの許可リスト管理（`.devcontainer/proxy/whitelist.txt`）
-- 許可されたサービスとドメイン:
+- Whitelist-based access control using Squid
+- Domain allowlist managed in `.devcontainer/proxy/whitelist.txt`
+- Allowed services/domains include:
   - **GitHub**: `.github.com`
-  - **VS Code**: 更新、マーケットプレイス、同期サービス各種ドメイン
-  - **開発ツール**: npm registry, PyPI
+  - **VS Code**: update, marketplace, sync-related domains
+  - **Dev tooling**: npm registry, PyPI
   - **AI**: OpenAI API
-- ネットワーク分離:
-  - devcontainerはprivate_netのみに接続（インターネット直接アクセス不可）
-  - すべてのHTTP/HTTPS通信はproxy経由で実行
-  - `no_proxy`設定により内部サービス（localhost、proxy、notification）への直接アクセスを許可
+- Network separation:
+  - devcontainer is attached only to private_net (no direct internet)
+  - All HTTP/HTTPS traffic goes through the proxy
+  - `no_proxy` permits direct access to internal services (localhost, proxy, notification)
 
-### 3. 開発環境設定
+### 3. Development environment setup
 
-- Python用VS Code拡張機能（ms-python.python）
-- Ruff（フォーマッター・リンター）
-- YAML拡張機能（redhat.vscode-yaml）
-- Python仮想環境の自動設定（`.venv`）
-- UV_LINK_MODE=copy設定による依存関係管理の最適化
+- VS Code Python extension (ms-python.python)
+- Ruff formatter/linter
+- YAML extension (redhat.vscode-yaml)
+- Automatic Python virtualenv (`.venv`)
+- `UV_LINK_MODE=copy` for dependency management efficiency
 
-### 4. 通知システム（Owattayo）
+### 4. Notification system (Owattayo)
 
-- HTTPリクエストを受信してDiscordに転送する通知サービス
-- Codexのタスク完了時などの作業通知に使用
-- `ghcr.io/backpaper0/owattayo`コンテナイメージを使用
-- Discord Webhook URLによる通知設定（環境変数`DISCORD_WEBHOOK_URL`）
-- private_netとpublic_netの両方に接続し、devcontainerからの通知を受信してDiscordに転送
+- Forwards HTTP requests to Discord as notifications
+- Used for Codex task completion alerts
+- Uses the `ghcr.io/backpaper0/owattayo` container image
+- Configured with a Discord webhook URL via `DISCORD_WEBHOOK_URL`
+- Connected to both private_net and public_net to receive from devcontainer and send to Discord
 
-### 5. ワークスペース所有者管理
+### 5. Workspace ownership management
 
-- コンテナ内でのファイル権限とワークスペース所有者を適切に設定
-- vscodeユーザーとしてワークスペースの所有権を管理
-- 開発時のファイル操作を円滑にするための権限設定
-- postStartCommandで自動実行（`.devcontainer/update-workspace-owner.sh`）
+- Ensures correct file ownership inside the container
+- Manages workspace ownership as the `vscode` user
+- Keeps file operations smooth during development
+- Runs automatically via postStartCommand (`.devcontainer/update-workspace-owner.sh`)
 
-## 通知アーキテクチャ
+## Notification architecture
 
-### Notificationサービス（Owattayo）
+### Notification service (Owattayo)
 
-Owattayoは作業完了通知を目的とした軽量な通知転送サービスです。
+Owattayo is a lightweight relay that forwards completion notifications.
 
-**動作フロー:**
+**Flow:**
 
 ```mermaid
 graph TD
@@ -130,113 +130,113 @@ graph TD
             A[devcontainer<br/>Codex CLI]
         end
     end
-    C[Discord チャンネル]
+    C[Discord channel]
 
-    A -->|タスク完了時<br/>HTTP POST<br/>:8888/notify| B
-    B -->|Discord Webhook<br/>HTTPS| C
+    A -->|Task complete<br/>HTTP POST<br/>:8888/notify| B
+    B -->|Discord webhook<br/>HTTPS| C
 ```
 
-**特徴:**
+**Highlights:**
 
-- HTTPリクエストの内容をDiscordに転送
-- 作業完了やタスク終了の通知に特化
-- Docker Composeによる他サービスとの連携
-- 環境変数による設定（`DISCORD_WEBHOOK_URL`）
-- private_netとpublic_netの両方に接続し、内部からの通知を受信して外部へ転送
+- Forwards HTTP payloads to Discord
+- Focused on task/completion notifications
+- Works alongside other services via Docker Compose
+- Configured via environment variable (`DISCORD_WEBHOOK_URL`)
+- Connected to both private_net and public_net to receive internally and send externally
 
-**設定方法:**
+**Setup:**
 
-1. Discord ServerでWebhook URLを取得
-2. 環境変数`DISCORD_WEBHOOK_URL`に設定（ホスト環境で設定すると自動的にコンテナへ引き継がれる）
-3. Docker Composeでnotificationサービスが自動起動
+1. Obtain a Discord webhook URL
+2. Set `DISCORD_WEBHOOK_URL` (set on the host to propagate into the container)
+3. The notification service starts automatically via Docker Compose
 
-## 構築手順
+## How to build
 
-### 前提条件
+### Prerequisites
 
-- Docker Desktop または Docker Engine
+- Docker Desktop or Docker Engine
 - VS Code with Dev Containers extension
 - Git
 
-### 手順
+### Steps
 
-1. **リポジトリのクローン**
+1. **Clone the repository**
 
    ```bash
    git clone <repository-url>
    cd <project-directory>
    ```
 
-2. **環境変数の設定（オプション）**
+2. **Set environment variables (optional)**
 
-   Discord通知を使用する場合は、ホスト環境で`DISCORD_WEBHOOK_URL`を設定します：
+   If you want Discord notifications, set `DISCORD_WEBHOOK_URL` on the host:
 
    ```bash
    export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
    ```
 
-3. **Dev Containerの起動**
-   - VS Codeでプロジェクトを開く
-   - コマンドパレット（Ctrl+Shift+P / Cmd+Shift+P）を開く
-   - "Dev Containers: Reopen in Container"を実行
+3. **Start the Dev Container**
+   - Open the project in VS Code
+   - Open the command palette (Ctrl+Shift+P / Cmd+Shift+P)
+   - Run “Dev Containers: Reopen in Container”
 
-4. **自動セットアップ**
-   - Microsoft公式のPython 3.13ベースイメージが使用されます
-   - Docker Composeで3つのサービス（devcontainer、proxy、notification）が起動します
-   - Python環境、Node.js環境がセットアップされます
-   - Codex CLIがnpm経由でインストールされます（`postCreateCommand`により実行）
-   - Squid Proxyが自動で起動し、ホワイトリストベースのネットワークフィルタリングが有効になります
+4. **Automatic setup**
+   - Uses the official Microsoft Python 3.13 base image
+   - Docker Compose brings up three services (devcontainer, proxy, notification)
+   - Python and Node.js environments are provisioned
+   - Codex CLI is installed via npm (via `postCreateCommand`)
+   - Squid proxy starts automatically with whitelist-based filtering enabled
 
-5. **動作確認**
+5. **Verify operation**
 
    ```bash
-   # Codex CLIの動作確認
+   # Check Codex CLI
    codex --version
 
-   # プロキシ経由のアクセス確認（許可されたサイト）
-   curl --connect-timeout 5 https://api.github.com/zen  # 成功するはず
+   # Access allowed site through proxy
+   curl --connect-timeout 5 https://api.github.com/zen  # should succeed
 
-   # プロキシによるブロック確認（許可されていないサイト）
-   curl --connect-timeout 5 https://example.com  # エラーになるはず
+   # Confirm proxy blocks disallowed site
+   curl --connect-timeout 5 https://example.com  # should fail
    ```
 
-### 環境変数
+### Environment variables
 
-必要に応じて以下の環境変数を設定してください：
+Set as needed:
 
-- `DISCORD_WEBHOOK_URL`: Discord通知用（ホスト側で設定するとnotificationサービスのコンテナへも自動で引き継がれます）
+- `DISCORD_WEBHOOK_URL`: For Discord notifications (set on host; passed into notification container)
 
-### テスト
+### Tests
 
-プロキシのホワイトリストがCodex用に設定されているかを確認するには、リポジトリルートで次を実行します:
+To confirm the proxy whitelist is ready for Codex, run at repo root:
 
 ```bash
 ./examples/test_codex_whitelist.sh
 ```
 
-## カスタマイズ
+## Customization
 
-### プロキシのホワイトリストドメイン追加
+### Add domains to the proxy whitelist
 
-`.devcontainer/proxy/whitelist.txt`に新しいドメインを追加します：
+Append a domain to `.devcontainer/proxy/whitelist.txt`:
 
 ```bash
 echo "example.org" >> .devcontainer/proxy/whitelist.txt
 ```
 
-ドメインは1行に1つ記述します。ワイルドカードは使用できず、完全一致のドメイン名を指定します。
+One domain per line. Wildcards are not supported; specify exact domains.
 
-**注意**: ホワイトリストを変更した後は、Dev Containerを再構築（Rebuild Container）する必要があります。
+**Note**: Rebuild the Dev Container after changing the whitelist.
 
-### プロキシ設定のカスタマイズ
+### Customize proxy settings
 
-より高度な設定が必要な場合は、`.devcontainer/proxy/squid.conf`を編集します。Squid Proxyの標準的な設定オプションを使用できます。
+For advanced needs, edit `.devcontainer/proxy/squid.conf`. Standard Squid options apply.
 
-## Codex設定
+## Codex configuration
 
-Codexは`$CODEX_HOME`（デフォルト: `~/.codex`）配下の設定ファイルで挙動を制御します。このDev Containerでは`CODEX_HOME=/home/vscode/.codex`を設定し、ボリュームをマウントして永続化しています。
+Codex behavior is controlled by files under `$CODEX_HOME` (default: `~/.codex`). This Dev Container sets `CODEX_HOME=/home/vscode/.codex` and mounts it for persistence.
 
-### config.json例
+### Example config.json
 
 ```json
 {
@@ -247,31 +247,31 @@ Codexは`$CODEX_HOME`（デフォルト: `~/.codex`）配下の設定ファイ�
 }
 ```
 
-Codexの設定フォーマットは公式ドキュメントに従い、TOML/JSON/YAMLいずれでも配置できます。認証はCodex CLIのログインフローを利用する想定で、環境変数でAPIキーを渡す必要はありません。
+Codex follows the official configuration formats; TOML/JSON/YAML are accepted. Authentication is expected via the Codex CLI login flow, so API keys do not need to be passed via environment variables.
 
-## セキュリティに関する注意事項
+## Security notes
 
-このプロジェクトは、Codex CLIを比較的安全に実行するための環境を提供しますが、完全なセキュリティを保証するものではありません。
+This project aims to provide a relatively safe environment for running Codex CLI, but it does not guarantee complete security.
 
-- ホワイトリストに含まれるドメインへのアクセスは許可されます
-- プロキシ設定を慎重に管理し、不要なドメインをホワイトリストに追加しないでください
-- Codexが実行するコマンドには十分注意してください
-- 機密情報を含むプロジェクトでの使用には特に注意が必要です
+- Only domains on the whitelist are reachable
+- Manage the proxy config carefully; avoid adding unnecessary domains
+- Be cautious about commands executed by Codex
+- Be extra careful when working with sensitive projects
 
-## トラブルシューティング
+## Troubleshooting
 
-### プロキシ経由でアクセスできない
+### Cannot access via proxy
 
-1. `.devcontainer/proxy/whitelist.txt`に必要なドメインが含まれているか確認
-2. Dev Containerを再構築（Rebuild Container）
-3. プロキシサービスが正常に起動しているか確認: `docker compose -f .devcontainer/compose.yaml ps`
+1. Ensure required domains are listed in `.devcontainer/proxy/whitelist.txt`
+2. Rebuild the Dev Container
+3. Check the proxy service is up: `docker compose -f .devcontainer/compose.yaml ps`
 
-### 通知が届かない
+### Notifications not delivered
 
-1. `DISCORD_WEBHOOK_URL`が正しく設定されているか確認
-2. notificationサービスが正常に起動しているか確認
-3. notificationサービスがpublic_netに接続されているか確認
+1. Verify `DISCORD_WEBHOOK_URL` is set correctly
+2. Confirm the notification service is running
+3. Confirm the notification service is attached to public_net
 
-## ライセンス
+## License
 
-このプロジェクトはMITライセンスの下で公開されています。
+This project is released under the MIT License.
