@@ -176,11 +176,13 @@ graph TD
    ```
 
 3. **Start the Dev Container**
+
    - Open the project in VS Code
    - Open the command palette (Ctrl+Shift+P / Cmd+Shift+P)
    - Run “Dev Containers: Reopen in Container”
 
 4. **Automatic setup**
+
    - Uses the official Microsoft Python 3.13 base image
    - Docker Compose brings up three services (devcontainer, proxy, notification)
    - Python and Node.js environments are provisioned
