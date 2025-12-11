@@ -1,4 +1,9 @@
 hide_agent_reasoning = false
+notify = [
+    "bash",
+    "-lc",
+    "paplay /usr/share/sounds/freedesktop/stereo/complete.oga",
+]
 
 [features]
 web_search_request = true # allow the model to request web searches
