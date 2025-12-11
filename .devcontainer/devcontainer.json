@@ -24,22 +24,7 @@
 	"remoteEnv": {
 		"npm_config_preifx": "/home/vscode/.local"
 	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-python.python",
-				"charliermarsh.ruff",
-				"redhat.vscode-yaml"
-			],
-			"settings": {
-				"[python]": {
-					"editor.defaultFormatter": "charliermarsh.ruff",
-					"editor.formatOnSave": true
-				},
-				"python.defaultInterpreterPath": "/workspace/${localWorkspaceFolderBasename}/.venv/bin/python"
-			}
-		}
-	},
+	"customizations": {},
 	"remoteUser": "vscode",
 	"postCreateCommand": ".devcontainer/install-codex.sh",
 	"postStartCommand": "sudo .devcontainer/update-workspace-owner.sh",
