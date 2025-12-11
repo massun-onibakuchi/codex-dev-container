@@ -238,18 +238,8 @@ For advanced needs, edit `.devcontainer/proxy/squid.conf`. Standard Squid option
 
 Codex behavior is controlled by files under `$CODEX_HOME` (default: `~/.codex`). This Dev Container sets `CODEX_HOME=/home/vscode/.codex` and mounts it for persistence.
 
-### Example config.json
-
-```json
-{
-  "model": "o4-mini",
-  "approvalMode": "suggest",
-  "fullAutoErrorMode": "ask-user",
-  "notify": true
-}
-```
-
-Codex follows the official configuration formats; TOML/JSON/YAML are accepted. Authentication is expected via the Codex CLI login flow, so API keys do not need to be passed via environment variables.
+Codex follows the official configuration formats.
+Authentication is expected via the Codex CLI login flow, so API keys do not need to be passed via environment variables.
 
 ## Security notes
 
