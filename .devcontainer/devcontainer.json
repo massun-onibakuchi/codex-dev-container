@@ -6,7 +6,8 @@
 			"version": "none",
 			"toolsToInstall": "uv,pre-commit"
 		},
-		"ghcr.io/devcontainers/features/node": {}
+		"ghcr.io/devcontainers/features/node": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {}
 	},
 	"containerEnv": {
 		"CODEX_HOME": "/home/vscode/.codex",
